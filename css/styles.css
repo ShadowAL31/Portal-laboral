@@ -519,6 +519,155 @@ body {
 }
 .status-badge.licencia .status-dot { background: var(--color-warning); }
 
+/* ---------- Selector de días interactivo ---------- */
+.day-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.day-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.6rem 0.5rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.day-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: #ebf8ff;
+}
+
+.day-btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
+}
+
+/* ---------- Tarjeta de detalle del día ---------- */
+.day-detail-card {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.day-detail-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: #fff;
+    padding: 0.85rem 1.25rem;
+}
+
+.day-detail-header h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.day-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-item:nth-child(odd) {
+    background: #f7fafc;
+}
+
+.detail-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.detail-total {
+    color: var(--color-success);
+}
+
+.day-placeholder {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: 1.5rem;
+}
+
+/* ---------- Tabla de datos diarios ---------- */
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin: 1.5rem 0 0.75rem;
+}
+
+.tabla-diaria {
+    font-size: 0.85rem;
+}
+
+.tabla-diaria thead th {
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 2px solid var(--color-primary-dark);
+}
+
+.tabla-diaria tbody td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-diaria tbody tr:hover {
+    background: #f7fafc;
+}
+
+.tabla-diaria .dia-nombre {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.tabla-diaria .total-semanal {
+    font-weight: 700;
+    color: var(--color-success);
+}
+
+.tabla-diaria .no-data {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: 1.5rem;
+}
+
 /* ---------- Banner de solo lectura ---------- */
 .readonly-banner {
     display: flex;

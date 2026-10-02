@@ -1,6 +1,6 @@
-# Portal Laboral — Consulta de Estatus (v4 - Local)
+# Portal Laboral — Consulta de Estatus (v5 - Google Sheets)
 
-Prototipo web de consulta de estatus laboral para trabajadores, con autenticación por celular + OTP validado contra un archivo JSON local (`js/usuarios.json`), vista de **solo lectura**.
+Prototipo web de consulta de estatus laboral para trabajadores, con autenticación por celular + OTP validado contra una hoja de cálculo de Google Sheets en tiempo real, vista de **solo lectura**.
 
 ---
 
@@ -12,8 +12,7 @@ consulta-estatus/
 ├── css/
 │   └── styles.css          # Estilos corporativos responsivos
 ├── js/
-│   ├── usuarios.json       # Base de datos local de usuarios autorizados
-│   └── app.js              # Lógica de autenticación
+│   └── app.js              # Lógica de autenticación (conectado a Google Sheets)
 └── README.md
 ```
 
@@ -55,7 +54,7 @@ Luego abra `http://localhost:8000` en su navegador.
 
 ## Gestión de usuarios
 
-Para agregar, modificar o eliminar usuarios, edite el archivo `js/usuarios.json`:
+Para agregar, modificar o eliminar usuarios, edite directamente la hoja de cálculo de Google Sheets. Los cambios se reflejan en tiempo real la próxima vez que un trabajador inicie sesión.
 
 ```json
 [
@@ -86,7 +85,7 @@ Usuario ingresa: Prefijo (+57) + Celular (3001234567) + OTP (483920)
                                     ↓
 Sistema construye: "+57" + "3001234567" = "+573001234567"
                                     ↓
-Busca en js/usuarios.json
+Busca en Google Sheets (vía Google Apps Script)
                                     ↓
                     ┌───────────┴───────────┐
                     ↓                       ↓
@@ -111,12 +110,12 @@ Busca en js/usuarios.json
 
 - **Solo lectura**: la tabla de datos no permite edición.
 - **Validación en dos pasos**: celular + OTP deben coincidir exactamente.
-- **Sin dependencias externas**: todo funciona localmente con el archivo JSON.
+- **Fuente de datos en tiempo real**: los datos se leen directamente de Google Sheets en cada inicio de sesión.
 
 ---
 
 ## Personalización
 
-- **Agregar usuarios**: edite `js/usuarios.json`.
+- **Agregar usuarios**: edite la hoja de cálculo de Google Sheets.
 - **Cambiar colores institucionales**: modifique las variables CSS en `:root` dentro de `css/styles.css`.
 - **Agregar países**: agregue opciones al `<select id="select-pais">` en `index.html`.

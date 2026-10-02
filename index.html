@@ -131,7 +131,7 @@
                         </button>
                     </div>
 
-                    <!-- Tabla de datos (lectura única) -->
+                    <!-- Tabla de datos base (lectura única) -->
                     <div class="table-wrapper">
                         <table class="data-table">
                             <tbody>
@@ -160,25 +160,50 @@
                                         </span>
                                     </td>
                                 </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Selector de días interactivo -->
+                    <h3 class="section-title">Resumen Diario</h3>
+                    <div class="day-selector" id="day-selector">
+                        <button type="button" class="day-btn" data-dia="Lunes">Lunes</button>
+                        <button type="button" class="day-btn" data-dia="Martes">Martes</button>
+                        <button type="button" class="day-btn" data-dia="Miércoles">Miércoles</button>
+                        <button type="button" class="day-btn" data-dia="Jueves">Jueves</button>
+                        <button type="button" class="day-btn" data-dia="Viernes">Viernes</button>
+                        <button type="button" class="day-btn" data-dia="Sábado">Sábado</button>
+                        <button type="button" class="day-btn" data-dia="Domingo">Domingo</button>
+                    </div>
+
+                    <!-- Tarjeta de detalle del día seleccionado -->
+                    <div class="day-detail-card" id="day-detail-card">
+                        <div class="day-detail-header">
+                            <h4 id="day-detail-title">Seleccione un día</h4>
+                        </div>
+                        <div class="day-detail-grid" id="day-detail-grid">
+                            <p class="day-placeholder">Haga clic en un día de la semana para ver los detalles</p>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de datos diarios (Lunes a Domingo) -->
+                    <h3 class="section-title">Resumen Semanal</h3>
+                    <div class="table-wrapper">
+                        <table class="data-table tabla-diaria">
+                            <thead>
                                 <tr>
-                                    <th scope="row">Suma del Cobro</th>
-                                    <td id="data-suma-cobro">—</td>
+                                    <th>Día</th>
+                                    <th>Suma del Cobro</th>
+                                    <th>Descuadre</th>
+                                    <th>Abono</th>
+                                    <th>Producto</th>
+                                    <th>Nequis Pendiente</th>
+                                    <th>Total Semanal</th>
                                 </tr>
+                            </thead>
+                            <tbody id="datos-diarios-body">
                                 <tr>
-                                    <th scope="row">Descuadre</th>
-                                    <td id="data-descuadre">—</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Abono</th>
-                                    <td id="data-abono">—</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Producto</th>
-                                    <td id="data-producto">—</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Nequis Pendiente</th>
-                                    <td id="data-nequis">—</td>
+                                    <td colspan="7" class="no-data">Cargando datos...</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -1,17 +1,17 @@
 /**
  * ============================================================
- * PORTAL LABORAL — Lógica de la aplicación (v4 - Local)
+ * PORTAL LABORAL — Lógica de la aplicación (v5 - Google Sheets)
  * ============================================================
- * Autenticación simplificada usando un archivo JSON local.
+ * Autenticación simplificada usando Google Sheets como fuente de datos.
  *
  * Flujo:
  *   1. El trabajador selecciona el prefijo de país.
  *   2. Ingresa su número de celular (sin prefijo).
  *   3. Ingresa el Código de Verificación (OTP).
- *   4. El sistema lee 'js/usuarios.json' y valida:
- *      a) Busca "codigoPais" + "celular" = celular completo.
+ *   4. El sistema lee la hoja de cálculo vía Google Apps Script y valida:
+ *      a) Busca "Codigo Pais" + "Celular Registrado" = celular completo.
  *      b) Si NO existe → "Número no registrado o código de verificación incorrecto".
- *      c) Si existe → verifica "codigoVerificacion".
+ *      c) Si existe → verifica "Codigo Verificacion".
  *      d) Si NO coincide → "Número no registrado o código de verificación incorrecto".
  *      e) Si coincide → muestra datos (solo lectura).
  * ============================================================
@@ -100,23 +100,81 @@
        CARGA DE USUARIOS
        ============================================================ */
 
+    /** URL del Google Apps Script que devuelve los datos de la hoja */
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwjL8iucmWqsuwB8XGzYucWG49uwqEGcLzaVAgeY1yyR4m5dl-SKk4IKtYj9WJt-0-A/exec';
+
     /**
-     * Carga los usuarios desde el archivo JSON local.
+     * Mapea los nombres de columna de Google Sheets a los campos internos.
+     * Columnas de la hoja → campos de la app
+     */
+    const MAPEO_CAMPOS = {
+        'ID Empleado': 'id',
+        'Nombre Completo': 'nombre',
+        'Codigo Pais': 'codigoPais',
+        'Celular Registrado': 'celular',
+        'Codigo Verificacion': 'codigoVerificacion',
+        'Cargo': 'cargo',
+        'Departamento': 'departamento',
+        'Estatus Laboral': 'estatus',
+        'Suma del Cobro': 'sumaCobro',
+        'Descuadre': 'descuadre',
+        'Abono': 'abono',
+        'Producto': 'producto',
+        'Nequis Pendiente': 'nequisPendiente'
+    };
+
+    /**
+     * Convierte un registro de Google Sheets (con nombres de columna)
+     * al formato de campo interno de la aplicación.
+     */
+    function mapearRegistro(registro) {
+        const resultado = {};
+        for (const [columna, campo] of Object.entries(MAPEO_CAMPOS)) {
+            resultado[campo] = registro[columna] !== undefined ? registro[columna] : '';
+        }
+        return resultado;
+    }
+
+    /**
+     * Mapea los registros diarios de un trabajador.
+     */
+    function mapearDatosDiarios(datosDiarios) {
+        if (!Array.isArray(datosDiarios)) return [];
+        return datosDiarios.map(function(registro) {
+            return {
+                dia: registro['Día'] || '',
+                sumaCobro: registro['Suma del Cobro'] || '',
+                descuadre: registro['Descuadre'] || '',
+                abono: registro['Abono'] || '',
+                producto: registro['Producto'] || '',
+                nequisPendiente: registro['Nequis Pendiente'] || '',
+                totalSemanal: registro['Total Semanal'] || ''
+            };
+        });
+    }
+
+    /**
+     * Carga los usuarios desde Google Sheets vía Google Apps Script.
      * Debe llamarse al inicializar la aplicación.
      */
     async function cargarUsuarios() {
         try {
-            const respuesta = await fetch('usuarios.json');
+            const respuesta = await fetch(API_URL);
 
             if (!respuesta.ok) {
                 throw new Error(`Error HTTP: ${respuesta.status}`);
             }
 
-            usuarios = await respuesta.json();
-            console.log(`[Auth] ${usuarios.length} usuarios cargados desde usuarios.json`);
+            const datos = await respuesta.json();
+            usuarios = datos.map(function(registro) {
+                const usuario = mapearRegistro(registro);
+                usuario.datosDiarios = mapearDatosDiarios(registro.datosDiarios);
+                return usuario;
+            });
+            console.log(`[Auth] ${usuarios.length} usuarios cargados desde Google Sheets`);
         } catch (error) {
-            console.error('[Auth] Error al cargar usuarios.json:', error);
-            mostrarError('Error al cargar la base de datos de usuarios. Verifique que el archivo js/usuarios.json exista.');
+            console.error('[Auth] Error al cargar datos desde Google Sheets:', error);
+            mostrarError('Error al cargar la base de datos de usuarios. Verifique su conexión a internet.');
             $('btn-login').disabled = true;
         }
     }
@@ -215,11 +273,6 @@
         $('data-nombre').textContent = t.nombre || '—';
         $('data-cargo').textContent = t.cargo || '—';
         $('data-departamento').textContent = t.departamento || '—';
-        $('data-suma-cobro').textContent = t.sumaCobro || '—';
-        $('data-descuadre').textContent = t.descuadre || '—';
-        $('data-abono').textContent = t.abono || '—';
-        $('data-producto').textContent = t.producto || '—';
-        $('data-nequis').textContent = t.nequisPendiente || '—';
 
         // Estatus con insignia de color
         const estatusEl = $('data-estatus');
@@ -227,7 +280,112 @@
         estatusEl.className = `status-badge ${t.estatus || ''}`;
         estatusEl.innerHTML = `<span class="status-dot"></span>${etiquetas[t.estatus] || t.estatus || '—'}`;
 
+        // Mostrar tabla de datos diarios
+        mostrarTablaDiaria(t.datosDiarios);
+
+        // Configurar selector de días
+        configurarSelectorDias(t.datosDiarios);
+
         mostrarVista('data');
+    }
+
+    /**
+     * Configura el selector de días interactivo.
+     */
+    function configurarSelectorDias(datosDiarios) {
+        const daySelector = $('day-selector');
+        if (!daySelector) return;
+
+        const dayBtns = daySelector.querySelectorAll('.day-btn');
+        dayBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Desactivar todos los botones
+                dayBtns.forEach(b => b.classList.remove('active'));
+                // Activar el botón seleccionado
+                this.classList.add('active');
+                // Mostrar detalle del día
+                const dia = this.getAttribute('data-dia');
+                mostrarDetalleDia(dia, datosDiarios);
+            });
+        });
+    }
+
+    /**
+     * Muestra la tarjeta de detalle del día seleccionado.
+     */
+    function mostrarDetalleDia(dia, datosDiarios) {
+        const card = $('day-detail-card');
+        const title = $('day-detail-title');
+        const grid = $('day-detail-grid');
+
+        if (!card || !title || !grid) return;
+
+        title.textContent = dia;
+
+        const datosDia = datosDiarios.find(d => d.dia === dia);
+
+        if (!datosDia) {
+            grid.innerHTML = '<p class="day-placeholder">No hay datos para este día</p>';
+            return;
+        }
+
+        grid.innerHTML = `
+            <div class="detail-item">
+                <span class="detail-label">Suma del Cobro</span>
+                <span class="detail-value">${datosDia.sumaCobro || '—'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Descuadre</span>
+                <span class="detail-value">${datosDia.descuadre || '—'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Abono</span>
+                <span class="detail-value">${datosDia.abono || '—'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Producto</span>
+                <span class="detail-value">${datosDia.producto || '—'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Nequis Pendiente</span>
+                <span class="detail-value">${datosDia.nequisPendiente || '—'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Total Semanal</span>
+                <span class="detail-value detail-total">${datosDia.totalSemanal || '—'}</span>
+            </div>
+        `;
+    }
+
+    /**
+     * Muestra la tabla de datos diarios (Lunes a Domingo).
+     */
+    function mostrarTablaDiaria(datosDiarios) {
+        const tbody = $('datos-diarios-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        if (!datosDiarios || datosDiarios.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="7" class="no-data">No hay datos diarios disponibles</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        datosDiarios.forEach(function(dia) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="dia-nombre">${dia.dia || '—'}</td>
+                <td>${dia.sumaCobro || '—'}</td>
+                <td>${dia.descuadre || '—'}</td>
+                <td>${dia.abono || '—'}</td>
+                <td>${dia.producto || '—'}</td>
+                <td>${dia.nequisPendiente || '—'}</td>
+                <td class="total-semanal">${dia.totalSemanal || '—'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     /* ============================================================
@@ -238,7 +396,7 @@
         // Año del pie de página
         $('year').textContent = new Date().getFullYear();
 
-        // Cargar usuarios desde JSON local
+        // Cargar usuarios desde Google Sheets
         cargarUsuarios();
 
         // Formulario de login
